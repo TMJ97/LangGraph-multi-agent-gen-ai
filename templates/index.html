@@ -3,18 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Multi-Agent Gen AI</title>
+    <title>Multi-Agent Gen AI Chat</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
   </head>
   <body>
-    <h1>Multi-Agent Gen AI</h1>
-    <div id="chat-container">
-      <!-- Chat messages will be displayed here -->
+    <div class="chat-container">
+      <div class="chat-header">
+        <h1>Multi-Agent Gen AI Chat</h1>
+      </div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input">
+        <form id="chat-form">
+          <input
+            type="text"
+            id="message-input"
+            placeholder="Type your message..."
+          />
+          <button type="submit">Send</button>
+        </form>
+      </div>
     </div>
-    <form id="chat-form">
-      <input type="text" id="user-input" placeholder="Enter your message" />
-      <button type="submit">Send</button>
-    </form>
 
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>
 </html>

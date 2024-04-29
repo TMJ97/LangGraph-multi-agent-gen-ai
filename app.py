@@ -12,5 +12,12 @@ openai_api_key = os.getenv('OPENAI_API_KEY')
 def home():
     return render_template('index.html')
 
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    message = request.json['message']
+    # TODO: Process the message and generate a response using the multi-agent workflow
+    response = "Sample response"
+    return jsonify({'response': response})
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -17,16 +17,11 @@
       <div class="chat-messages" id="chat-messages"></div>
       <div class="chat-input">
         <form id="chat-form">
-          <input
-            type="text"
-            id="message-input"
-            placeholder="Type your message..."
-          />
+          <input type="file" id="file-input" accept=".xlsx,.csv" />
           <button type="submit">Send</button>
         </form>
       </div>
     </div>
-
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>
 </html>

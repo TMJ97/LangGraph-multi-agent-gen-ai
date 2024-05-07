@@ -1,17 +1,17 @@
 from flask import Flask, render_template, request, jsonify, send_file
-from typing import List, Dict
+from typing import List
 from dotenv import load_dotenv
 import os
 import logging
 import pandas as pd
 import tempfile
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
-from langchain.agents import create_agent
-from langgraph.agents import create_agent_executor
+from langchain.tools import Tool
 from langchain.schema import BaseMessage, HumanMessage, SystemMessage
-from langgraph.graph import StateGraph
-from langgraph.prebuilt import create_agent_executor
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langgraph.graph import StateGraph, END
+from langchain_core.utils.function_calling import format_tool_to_openai_function
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -19,40 +19,31 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 openai_api_key = os.getenv('OPENAI_API_KEY')
 
-def create_agent_with_memory(name, task, tools):
-    llm = ChatOpenAI(temperature=0) #(model_name="gpt-4", temperature=0)
-    memory = ConversationBufferMemory(memory_key="chat_history")
-    agent = create_agent(
-        name=name,
-        task=task,
-        tools=tools,
-        llm=llm,
-        memory=memory,
-        #agent_type="openai-functions",
-    )
-    return agent
+def create_agent(llm, tools, system_message: str):
+    """Create an agent."""
+    functions = [format_tool_to_openai_function(t) for t in tools]
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_message),
+        MessagesPlaceholder(variable_name="messages"),
+    ])
+    return prompt | llm.bind_functions(functions)
 
-data_cleaning_planning_agent = create_agent_with_memory(
-    name="Data Cleaning Planning Agent",
-    task="Provide a comprehensive data cleaning plan based on the 'input_data', with detailed instrucitons. Update the 'cleaning_plan' attribute of the AgentState with the generated plan.",
+data_cleaning_planning_agent = create_agent(
+    llm=ChatOpenAI(temperature=1),
     tools=[],
+    system_message="You are a Data Cleaning Planning Agent. Provide a comprehensive data cleaning plan based on the 'input_data', with detailed instructions. Update the 'cleaning_plan' attribute of the AgentState with the generated plan."
 )
 
-data_cleaning_reviewing_agent = create_agent_with_memory(
-    name="Data Cleaning Reviewing Agent",
-    task="Review and revise a comprehensive data cleaning plan ('cleaning_plan') for the 'input_data', with detailed instrucitons. Update the 'cleaning_plan' attribute of the AgentState with the improved plan.",
+data_cleaning_reviewing_agent = create_agent(
+    llm=ChatOpenAI(temperature=1),
     tools=[],
+    system_message="You are a Data Cleaning Reviewing Agent. Review and revise a comprehensive data cleaning plan ('cleaning_plan') for the 'input_data', with detailed instructions. Update the 'cleaning_plan' attribute of the AgentState with the improved plan."
 )
 
-data_cleaning_execution_agent = create_agent_with_memory(
-    name="Data Cleaning Execution Agent",
-    task="Carry out the data cleaning task ('cleaning_plan') on the 'input_data'. Update the 'cleaned_data' attribute of the AgentState with the cleaned data.",
+data_cleaning_execution_agent = create_agent(
+    llm=ChatOpenAI(temperature=1),
     tools=[],
-)
-
-agent_executor = create_agent_executor(
-    agents=[data_cleaning_planning_agent, data_cleaning_reviewing_agent, data_cleaning_execution_agent],
-    llm=ChatOpenAI(temperature=0),
+    system_message="You are a Data Cleaning Execution Agent. Carry out the data cleaning task ('cleaning_plan') on the 'input_data'. Update the 'cleaned_data' attribute of the AgentState with the cleaned data."
 )
 
 class AgentState:
@@ -69,8 +60,11 @@ workflow.add_node("Data Cleaning Execution Agent", data_cleaning_execution_agent
 
 workflow.add_edge("Data Cleaning Planning Agent", "Data Cleaning Reviewing Agent")
 workflow.add_edge("Data Cleaning Reviewing Agent", "Data Cleaning Execution Agent")
+workflow.add_edge("Data Cleaning Execution Agent", END)
 
-workflow.set_agent_executor(agent_executor)
+workflow.set_entry_point("Data Cleaning Planning Agent")  # Set the entry point
+
+workflow.compile()
 
 @app.route('/')
 def index():

@@ -5,9 +5,10 @@ import os
 import logging
 import pandas as pd
 import tempfile
+import openai
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
-from langchain.tools import Tool
+from langchain.tools import Tool, PythonREPL
 from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 from langchain.prompts import ChatPromptTemplate
 from langgraph.graph import StateGraph, END
@@ -26,37 +27,34 @@ class AgentState(TypedDict):
     cleaning_plan: str
     cleaned_data: pd.DataFrame
 
-def create_agent(llm, tools, system_message: str):
+def create_agent(llm, system_message: str):
     """Create an agent."""
-    functions = [format_tool_to_openai_function(t) for t in tools]
+    prompt = ChatPromptTemplate.from_template(system_message)
+    return prompt | llm
 
-    def format_agent_state(agent_state: AgentState) -> Dict[str, Any]:
-        return {
-            "messages": agent_state.messages,
-            "input_data": agent_state.input_data.to_dict(orient="records"),
-            "cleaning_plan": agent_state.cleaning_plan,
-            "cleaned_data": agent_state.cleaned_data.to_dict(orient="records"),
-        }
-
-    prompt = ChatPromptTemplate.from_template(system_message, format_kwargs=format_agent_state)
-    return prompt | llm.bind_functions(functions)
+# Define the tools
+python_repl = PythonREPL()
+tools = [
+    Tool(
+        name="Python REPL",
+        func=python_repl.run,
+        description="A Python REPL (Read-Eval-Print Loop) to execute Python code. Use this to analyze data, write data cleaning scripts, or perform any other Python operations."
+    )
+]
 
 data_cleaning_planning_agent = create_agent(
-    llm=ChatOpenAI(temperature=1),
-    tools=[],
-    system_message="You are a Data Cleaning Planning Agent. Provide a comprehensive data cleaning plan based on the 'input_data', with detailed instructions. Update the 'cleaning_plan' attribute of the AgentState with the generated plan."
+    llm=ChatOpenAI(temperature=1, model_name="gpt-3.5-turbo-0125"),
+    system_message="You are a Data Cleaning Planning Agent. Provide a comprehensive data cleaning plan based on the 'input_data', with detailed instructions. Update the 'cleaning_plan' attribute of the AgentState with the generated plan. You have access to a Python REPL tool to execute Python code and analyze the data."
 )
 
 data_cleaning_reviewing_agent = create_agent(
-    llm=ChatOpenAI(temperature=1),
-    tools=[],
-    system_message="You are a Data Cleaning Reviewing Agent. Review and revise a comprehensive data cleaning plan ('cleaning_plan') for the 'input_data', with detailed instructions. Update the 'cleaning_plan' attribute of the AgentState with the improved plan."
+    llm=ChatOpenAI(temperature=1, model_name="gpt-3.5-turbo-0125"),
+    system_message="You are a Data Cleaning Reviewing Agent. Review and revise a comprehensive data cleaning plan ('cleaning_plan') for the 'input_data', with detailed instructions. Update the 'cleaning_plan' attribute of the AgentState with the improved plan. You have access to a Python REPL tool to execute Python code and analyze the data."
 )
 
 data_cleaning_execution_agent = create_agent(
-    llm=ChatOpenAI(temperature=1),
-    tools=[],
-    system_message="You are a Data Cleaning Execution Agent. Carry out the data cleaning task ('cleaning_plan') on the 'input_data'. Update the 'cleaned_data' attribute of the AgentState with the cleaned data."
+    llm=ChatOpenAI(temperature=1, model_name="gpt-3.5-turbo-0125"),
+    system_message="You are a Data Cleaning Execution Agent. Carry out the data cleaning task ('cleaning_plan') on the 'input_data'. Update the 'cleaned_data' attribute of the AgentState with the cleaned data. You have access to a Python REPL tool to execute Python code and perform data cleaning operations."
 )
 
 workflow = StateGraph(AgentState)
@@ -112,15 +110,12 @@ def send_message():
                 'download_url': f"/download/{temp_file.name}",
                 'download_filename': download_filename
             }, ensure_ascii=False)
-        except openai.error.RateLimitError as e:
-            logging.error(f"Rate limit error: {str(e)}")
-            return jsonify({'error': 'OpenAI API rate limit exceeded. Please try again later.'}), 429
         except Exception as e:
             logging.error(f"Error during agent execution: {str(e)}")
             return jsonify({'error': str(e)}), 500
     else:
         return jsonify({'error': 'No file uploaded'})
-    
+
 @app.route('/download/<path:filename>')
 def download_file(filename):
     return send_file(filename, as_attachment=True)

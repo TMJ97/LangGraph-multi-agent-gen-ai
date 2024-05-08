@@ -8,12 +8,13 @@ import tempfile
 import openai
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
-from langchain.tools import Tool, PythonREPL
-from langchain.schema import BaseMessage, HumanMessage, SystemMessage
+from langchain.tools import Tool
+from langchain.schema import BaseMessage, HumanMessage, SystemMessage, AIMessage
 from langchain.prompts import ChatPromptTemplate
 from langgraph.graph import StateGraph, END
 from langchain_core.utils.function_calling import format_tool_to_openai_function
 from typing_extensions import TypedDict
+from langchain_experimental.utilities import PythonREPL
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -91,11 +92,26 @@ def send_message():
             )
             logging.info(f"User uploaded file: {uploaded_file.filename}")
             response = compiled_workflow.invoke(state)
-            logging.info(f"Agent response: {response.messages[-1].content}")
 
+            # Process the agent's response
             agent_steps = []
             for message in response.messages[1:-1]:
-                agent_steps.append(f"{message.role}: {message.content}")
+                if isinstance(message, AIMessage):
+                    try:
+                        parsed_response = eval(message.content)
+                        if isinstance(parsed_response, dict):
+                            if 'cleaning_plan' in parsed_response:
+                                response.cleaning_plan = parsed_response['cleaning_plan']
+                            if 'cleaned_data' in parsed_response:
+                                response.cleaned_data = pd.DataFrame(parsed_response['cleaned_data'])
+                        agent_steps.append(f"{message.role}: {message.content}")
+                    except Exception as e:
+                        logging.error(f"Error parsing agent response: {str(e)}")
+                        agent_steps.append(f"{message.role}: {message.content}")
+                else:
+                    agent_steps.append(f"{message.role}: {message.content}")
+
+            logging.info(f"Agent response: {response.messages[-1].content}")
 
             cleaned_data_df = response.cleaned_data
 

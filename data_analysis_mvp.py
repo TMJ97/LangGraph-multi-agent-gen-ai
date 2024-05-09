@@ -7,6 +7,7 @@ def process_data(input_data):
     processed_data = {
         "messages": [HumanMessage(content=f"Please analyze the following data:\n{input_data.to_string()}")],
         "sender": "User",
+        "intermediate_steps": [],  # Add an empty list for intermediate_steps
     }
     return processed_data
 
@@ -35,7 +36,7 @@ def main():
     processed_data = process_data(input_data)
 
     # Run the workflow
-    result = workflow.run(processed_data)
+    result = workflow.invoke(processed_data)
 
     # Print the summary and analysis
     print("Data Summary:")

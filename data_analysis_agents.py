@@ -1,22 +1,29 @@
 import os
 import functools
-from langchain.chat_models import ChatOpenAI
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
 from langchain.schema import HumanMessage
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.agents import create_openai_functions_agent
+
+load_dotenv()  # Load environment variables from .env file
 
 def create_agent(llm, tools, system_message):
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", system_message),
-            MessagesPlaceholder(variable_name="messages"),
+            MessagesPlaceholder(variable_name="agent_scratchpad"),
+            MessagesPlaceholder(variable_name="intermediate_steps"),
         ]
     )
     agent = create_openai_functions_agent(llm, tools, prompt=prompt)
     return agent
 
 def agent_node(state, agent, name):
-    result = agent.run(state["messages"])
+    result = agent.invoke({
+        "agent_scratchpad": "",
+        "intermediate_steps": state["messages"]
+    })
     result = HumanMessage(content=result.content, additional_kwargs={"name": name})
     return {
         "messages": [result],

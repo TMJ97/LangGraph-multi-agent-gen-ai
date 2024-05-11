@@ -1,15 +1,6 @@
 import sys
 import pandas as pd
-from langchain.schema import HumanMessage
-from data_analysis_workflow import workflow
-
-def process_data(input_data):
-    processed_data = {
-        "messages": [HumanMessage(content=f"Please analyze the following data:\n{input_data.to_string()}")],
-        "sender": "User",
-        "intermediate_steps": [],  # Add an empty list for intermediate_steps
-    }
-    return processed_data
+from data_analysis_workflow import run_data_summary, run_data_analysis
 
 def get_user_input_data(file_path):
     try:
@@ -28,21 +19,17 @@ def main():
         sys.exit(1)
 
     csv_file_path = sys.argv[1]
-
-    # Get user input data
     input_data = get_user_input_data(csv_file_path)
 
-    # Process the input data
-    processed_data = process_data(input_data)
-
-    # Run the workflow
-    result = workflow.invoke(processed_data)
-
-    # Print the summary and analysis
+    print("Running data summary...")
+    summary_result = run_data_summary(input_data.to_string())
     print("Data Summary:")
-    print(result["Data Summary Agent"].content)
+    print(summary_result)
+
+    print("Running data analysis...")
+    analysis_result = run_data_analysis(input_data.to_string())
     print("Data Analysis:")
-    print(result["Data Analysis Agent"].content)
+    print(analysis_result)
 
 if __name__ == "__main__":
     main()

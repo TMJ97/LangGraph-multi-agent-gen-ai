@@ -1,6 +1,6 @@
 import sys
 import pandas as pd
-from data_analysis_workflow import run_data_summary, run_data_analysis
+from data_analysis_workflow import run_data_analysis
 
 def get_user_input_data(file_path):
     try:
@@ -21,13 +21,8 @@ def main():
     csv_file_path = sys.argv[1]
     input_data = get_user_input_data(csv_file_path)
 
-    print("Running data summary...")
-    summary_result = run_data_summary(input_data.to_string())
-    print("Data Summary:")
-    print(summary_result)
-
     print("Running data analysis...")
-    analysis_result = run_data_analysis(input_data.to_string())
+    analysis_result = run_data_analysis(input_data, "What are the top 3 products by total sales?")
     print("Data Analysis:")
     print(analysis_result)
 

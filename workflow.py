@@ -1,27 +1,19 @@
 # workflow.py
 
-from langgraph.graph import StateGraph, END
-from typing_extensions import TypedDict
-from data_analysis_agent import create_data_analysis_agent
+import pandas as pd
 
-class AgentState(TypedDict):
-    input_data: str
-    analysis_result: str
+def data_analysis_step(state):
+    with NamedTemporaryFile(delete=False, suffix=".csv") as temp_file:
+        temp_file.write(state['input_data'].encode('utf-8'))
+        temp_file_path = temp_file.name
 
-def run_workflow(input_data):
-    workflow = StateGraph(AgentState)
-
-    workflow.add_node("Data Analysis Agent", create_data_analysis_agent())
-    workflow.add_edge("Data Analysis Agent", END)
-
-    workflow.set_entry_point("Data Analysis Agent")
-
-    compiled_workflow = workflow.compile()
-
-    state = AgentState(
-        input_data=input_data,
-        analysis_result=""
-    )
-
-    result = compiled_workflow.invoke(state)
-    return result
+    loader = CSVLoader(file_path=temp_file_path)
+    data = loader.load()
+    df = pd.DataFrame([d.page_content.split("\n") for d in data], columns=[
+        "Segment", "Country", "Product", "Discount Band", "Units Sold",
+        "Manufacturing Price", "Sale Price", "Gross Sales", "Discounts",
+        "Sales", "COGS", "Profit", "Date", "Month Number", "Month Name", "Year"
+    ])
+    agent, prompt = create_data_analysis_agent()
+    analysis_result = agent.run(prompt.format_prompt(input=df).to_string())
+    return {"analysis_result": analysis_result}

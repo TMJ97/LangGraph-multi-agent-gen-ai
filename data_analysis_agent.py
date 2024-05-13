@@ -1,18 +1,25 @@
 # data_analysis_agent.py
 
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
+from langchain.agents import initialize_agent, Tool
+from langchain.agents import AgentType
+from langchain_experimental.utilities import PythonREPL
 
 def create_data_analysis_agent():
     system_message = """
     You are a Data Analysis Agent. Your task is to provide insights and perform analysis on the input data.
 
-    Given a DataFrame, perform the following steps:
-    1. Understand the analysis requirements based on the user's input question.
-    2. Generate a summary of the data, including the number of rows and columns, and the types of data in each column.
-    3. Provide the total sum of a specific column if requested.
+    The input data will be provided as a pandas DataFrame called 'df'.
 
-    Provide the analysis results in a clear and concise manner.
+    To perform the analysis, follow these steps:
+    1. Analyze the structure and content of the DataFrame.
+    2. Identify relevant data analysis tasks based on the DataFrame.
+    3. Generate Python code using the pandas library to perform the identified analysis tasks.
+    4. Execute the generated code using the PythonREPL tool, referring to the DataFrame as 'df'.
+    5. Provide a summary of the analysis results and key insights.
+
+    Be dynamic and adaptable in your approach based on the specific input data provided.
     """
 
     system_message_prompt = SystemMessagePromptTemplate.from_template(system_message)
@@ -20,4 +27,15 @@ def create_data_analysis_agent():
     prompt = ChatPromptTemplate.from_messages([system_message_prompt, human_message_prompt])
 
     llm = ChatOpenAI(temperature=0)
-    return llm.create_agent(prompt)
+
+    python_repl = PythonREPL()
+    tools = [
+        Tool(
+            name="PythonREPL",
+            func=python_repl.run,
+            description="A Python shell for executing Python code."
+        )
+    ]
+
+    agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
+    return agent, prompt

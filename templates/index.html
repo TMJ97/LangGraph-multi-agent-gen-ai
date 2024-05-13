@@ -1,27 +1,46 @@
+<!-- index.html -->
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Multi-Agent Gen AI Chat</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/style.css') }}"
-    />
+    <title>Data Analysis</title>
   </head>
   <body>
-    <div class="chat-container">
-      <div class="chat-header">
-        <h1>Multi-Agent Gen AI Chat</h1>
-      </div>
-      <div class="chat-messages" id="chat-messages"></div>
-      <div class="chat-input">
-        <form id="chat-form">
-          <input type="file" id="file-input" accept=".xlsx,.csv" />
-          <button type="submit">Send</button>
-        </form>
-      </div>
+    <h1>Data Analysis</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="file" name="file" accept=".csv" />
+      <button type="submit">Upload</button>
+    </form>
+    <div id="results">
+      <h2>Analysis Result</h2>
+      <pre id="analysisResult"></pre>
     </div>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <script>
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          var formData = new FormData(this);
+
+          fetch("/send_message", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.error) {
+                alert("Error: " + data.error);
+              } else {
+                document.getElementById("analysisResult").textContent =
+                  data.analysis_result;
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              alert("An error occurred while processing your request.");
+            });
+        });
+    </script>
   </body>
 </html>

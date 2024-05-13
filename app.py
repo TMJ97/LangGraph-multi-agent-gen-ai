@@ -1,6 +1,6 @@
 # app.py
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 from workflow import run_workflow
 
 app = Flask(__name__)
@@ -16,13 +16,11 @@ def send_message():
         try:
             input_data = uploaded_file.read().decode('utf-8')
             result = run_workflow(input_data)
-            return jsonify({
-                'analysis_result': result.analysis_result
-            })
+            return jsonify({'analysis_result': result})
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     else:
-        return jsonify({'error': 'No file uploaded'})
+        return jsonify({'error': 'No file uploaded'}), 400
 
 if __name__ == '__main__':
     app.run(debug=True)

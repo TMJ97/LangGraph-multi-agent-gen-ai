@@ -11,12 +11,15 @@ class AnalysisAgent(OpenAIAssistantRunnable):
     def __init__(self, assistant_id, model):
         super().__init__(assistant_id=assistant_id, model=model)
 
-    def summarize_data(self, data: str) -> str:
-        # Basic summarization logic
-        return f"Summary of data: {data[:100]}"  # Just a sample response
+    def summarize_data(self, state: dict) -> dict:
+        processed_content = state.get("processed_content", "")
+        summary = f"Summary of data: {processed_content[:100]}"  # Just a sample response
+        state["summary"] = summary
+        return state
 
 if __name__ == "__main__":
     model = ChatOpenAI(api_key=openai_api_key, temperature=0)
     agent = AnalysisAgent(assistant_id="analysis_agent", model=model)
-    response = agent.summarize_data("Sample data content")
+    initial_state = {"processed_content": "Sample processed content"}
+    response = agent.summarize_data(initial_state)
     print(response)

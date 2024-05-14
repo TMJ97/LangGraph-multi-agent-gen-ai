@@ -2,8 +2,7 @@
 
 from langchain_openai import ChatOpenAI
 from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
-from langchain.agents import initialize_agent, Tool
-from langchain.agents import AgentType
+from langchain.chains import LLMChain
 
 def create_data_analysis_interpretation_agent():
     system_message = """
@@ -23,5 +22,10 @@ def create_data_analysis_interpretation_agent():
     prompt = ChatPromptTemplate.from_messages([system_message_prompt, human_message_prompt])
 
     llm = ChatOpenAI(temperature=0)
-    agent = initialize_agent([], llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
-    return agent, prompt
+    try:
+        chain = LLMChain(llm=llm, prompt=prompt)
+        return chain
+    except Exception as e:
+        error_message = f"Error creating data analysis interpretation agent: {str(e)}"
+        print(error_message)
+        raise Exception(error_message)

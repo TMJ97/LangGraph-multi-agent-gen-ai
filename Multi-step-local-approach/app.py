@@ -27,14 +27,15 @@ def send_message():
                 analysis_results = file.read()
 
             # Pass the analysis results to the agent for interpretation
-            agent, prompt = create_data_analysis_interpretation_agent()
-            interpreted_results = agent.run(prompt.format_prompt(input=analysis_results).to_string())
+            agent = create_data_analysis_interpretation_agent()
+            interpreted_results = agent.run(analysis_results)
 
             return jsonify({'analysis_plan_and_code': result['analysis_plan_and_code'], 'interpreted_results': interpreted_results})
         except Exception as e:
+            print(f"Error: {str(e)}")  # Add this line to log the error
             return jsonify({'error': str(e)}), 500
     else:
         return jsonify({'error': 'No file uploaded'}), 400
-
+    
 if __name__ == '__main__':
     app.run(debug=True)

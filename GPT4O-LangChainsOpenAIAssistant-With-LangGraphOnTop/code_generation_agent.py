@@ -13,7 +13,7 @@ class CodeGenerationAgent(OpenAIAssistantRunnable):
 
     def generate_code(self, state: dict) -> dict:
         summary = state.get("summary", "")
-        code = f"Generated code based on summary: {summary[:100]}"  # Just a sample response
+        code = f"Generated code based on summary: print('{summary}')"  # More meaningful code
         state["code"] = code
         return state
 

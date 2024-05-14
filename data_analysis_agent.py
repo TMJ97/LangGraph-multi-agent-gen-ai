@@ -21,7 +21,6 @@ def create_data_analysis_agent():
     6. Provide a summary of the analysis results and key insights.
 
     Be dynamic and adaptable in your approach based on the specific input data provided.
-    When using the PythonREPL tool, make sure to provide the code as a single string without any special formatting.
     """
 
     system_message_prompt = SystemMessagePromptTemplate.from_template(system_message)
@@ -35,7 +34,7 @@ def create_data_analysis_agent():
         Tool(
             name="PythonREPL",
             func=python_repl.run,
-            description="A Python shell for executing Python code. Provide the code as a single string."
+            description="A Python shell for executing Python code."
         )
     ]
 

@@ -28,6 +28,8 @@ def generate_data_analysis_plan(data_description):
     chain = create_data_analysis_plan_agent()
     try:
         analysis_plan_and_code = chain.run(data_description)
+        if "error" in analysis_plan_and_code.lower():
+            raise Exception(f"Model produced an error: {analysis_plan_and_code}")
         return analysis_plan_and_code
     except Exception as e:
         error_message = f"Error generating data analysis plan: {str(e)}"

@@ -22,23 +22,29 @@ def run_workflow(input_data):
         loader = CSVLoader(file_path=temp_file_path)
         data = loader.load()
 
-        data_dicts = [
-            {
-                key: value
-                for key, value in zip(row.split(","), row.split(","))
-            }
-            for row in [d.page_content for d in data]
-        ]
+        df = pd.DataFrame([row.page_content.split(",") for row in data])
+        df.columns = df.iloc[0]
+        df = df[1:]
 
-        df = pd.DataFrame(data_dicts)
-
+        print("Input DataFrame:")
+        print(df.head())
+        print(df.shape)
+        
         agent, prompt = create_data_analysis_agent()
         try:
             analysis_result = agent.run(prompt.format_prompt(input=df).to_string())
+            summary_prompt = f"""
+            Based on your analysis of the DataFrame, please provide a summary of the key findings and insights. Include answers to the following questions:
+            1. What are the total sales for each product?
+            2. Which country has the highest number of units sold?
+            3. How do the sales vary across different segments?
+            """
+            summary_result = agent.run(summary_prompt)
+            final_result = f"Analysis Result:\n{analysis_result}\n\nSummary:\n{summary_result}"
         except Exception as e:
-            analysis_result = f"An error occurred during analysis: {str(e)}"
+            final_result = f"An error occurred during analysis: {str(e)}"
 
-        return {"analysis_result": analysis_result}
+        return {"analysis_result": final_result}
 
     workflow.add_node("Data Analysis Agent", data_analysis_step)
     workflow.add_edge("Data Analysis Agent", END)

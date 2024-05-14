@@ -14,13 +14,15 @@ def create_data_analysis_agent():
 
     To perform the analysis, follow these steps:
     1. Analyze the structure and content of the DataFrame. Use df.head() to view the first few rows, df.columns to view the column names, and df.shape to check the number of rows and columns.
-    2. If needed, rename the columns to meaningful names using df.columns = ['new_name1', 'new_name2', ...].
-    3. Identify relevant data analysis tasks based on the DataFrame.
-    4. Generate Python code using the pandas library to perform the identified analysis tasks.
-    5. Execute the generated code using the PythonREPL tool, referring to the DataFrame as 'df'.
-    6. Provide a summary of the analysis results and key insights.
+    2. Identify relevant data analysis tasks based on the DataFrame. Some questions to consider:
+       - What are the total sales for each product?
+       - Which country has the highest number of units sold?
+       - How do the sales vary across different segments?
+    3. Generate Python code using the pandas library to perform the identified analysis tasks. This may include grouping data, calculating aggregates, and creating visualizations.
+    4. Execute the generated code using the PythonREPL tool, referring to the DataFrame as 'df'.
+    5. Provide a summary of the analysis results and key insights. Include specific observations and answers to the questions posed in step 2.
 
-    Be dynamic and adaptable in your approach based on the specific input data provided.
+    Be thorough in your analysis and provide actionable insights based on the data.
     """
 
     system_message_prompt = SystemMessagePromptTemplate.from_template(system_message)

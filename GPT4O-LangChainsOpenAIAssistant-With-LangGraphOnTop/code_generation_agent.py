@@ -13,8 +13,9 @@ class CodeGenerationAgent(OpenAIAssistantRunnable):
 
     def generate_code(self, state: dict) -> dict:
         summary = state.get("summary", "")
-        code = f"Generated code based on summary: print('{summary}')"  # More meaningful code
+        code = f"Generated code based on summary: print('{summary}')"
         state["code"] = code
+        print(f"Debug: CodeGenerationAgent state: {state}")  # Debugging print
         return state
 
 if __name__ == "__main__":

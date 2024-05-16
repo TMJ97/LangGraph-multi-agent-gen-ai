@@ -13,8 +13,9 @@ class AnalysisAgent(OpenAIAssistantRunnable):
 
     def summarize_data(self, state: dict) -> dict:
         processed_content = state.get("processed_content", "")
-        summary = f"Summary of data: This is a summary of the processed content - {processed_content}"  # More meaningful summary
+        summary = f"Summary of data: This is a summary of the processed content - {processed_content}"
         state["summary"] = summary
+        print(f"Debug: AnalysisAgent state: {state}")  # Debugging print
         return state
 
 if __name__ == "__main__":

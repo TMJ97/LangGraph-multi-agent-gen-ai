@@ -14,7 +14,8 @@ class DataIngestionAgent(OpenAIAssistantRunnable):
     def handle_file_upload(self, state: dict) -> dict:
         file_content = state.get("content", "")
         processed_content = f"File content received: {file_content[:100]}"  # Just a sample response
-        state["content"] = processed_content
+        state["processed_content"] = processed_content
+        print(f"Debug: DataIngestionAgent state: {state}")  # Debugging print
         return state
 
 if __name__ == "__main__":

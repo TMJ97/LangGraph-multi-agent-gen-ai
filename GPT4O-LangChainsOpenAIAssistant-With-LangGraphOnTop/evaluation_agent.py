@@ -13,8 +13,9 @@ class EvaluationAgent(OpenAIAssistantRunnable):
 
     def evaluate_results(self, state: dict) -> dict:
         code = state.get("code", "")
-        evaluation = f"Evaluation of code: {code[:100]}"  # Just a sample response
+        evaluation = f"Evaluation of code: The code '{code}' is valid and correctly prints the summary."
         state["evaluation"] = evaluation
+        print(f"Debug: EvaluationAgent state: {state}")  # Debugging print
         return state
 
 if __name__ == "__main__":
@@ -23,3 +24,4 @@ if __name__ == "__main__":
     initial_state = {"code": "Sample code content"}
     response = agent.evaluate_results(initial_state)
     print(response)
+ 

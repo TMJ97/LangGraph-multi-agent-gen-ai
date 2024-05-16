@@ -53,4 +53,5 @@ initial_state = {"content": "Sample file content for data ingestion"}
 
 # Execute the workflow
 output = runnable.invoke(initial_state)
-print(output)
+print(f"Final output: {output}")  # Debugging print
+ 

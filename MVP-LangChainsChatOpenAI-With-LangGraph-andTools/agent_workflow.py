@@ -4,10 +4,10 @@ from data_analysis_agent import create_data_analysis_agent, analyze_data
 
 load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
-assistant_id = os.getenv("OPENAI_ASSISTANT_ID")
-model = "gpt-3.5-turbo-0125"
+model_name = "gpt-3.5-turbo"
+temperature = 0.7
 
-data_analysis_agent = create_data_analysis_agent(assistant_id=assistant_id, model=model)
+data_analysis_agent = create_data_analysis_agent(model_name=model_name, temperature=temperature)
 
 initial_state = {
     "content": """date,revenue,expenses,profit

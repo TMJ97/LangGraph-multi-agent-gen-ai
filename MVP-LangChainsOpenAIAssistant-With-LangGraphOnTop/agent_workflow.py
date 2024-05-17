@@ -1,29 +1,13 @@
 import os
 from dotenv import load_dotenv
-from langgraph.graph import StateGraph, END
-from data_analysis_agent import DataAnalysisAgent
-from langchain_openai import ChatOpenAI
+from data_analysis_agent import create_data_analysis_agent, analyze_data
 
 load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
-assistant_id = os.getenv("OPENAI_ASSISTANT_ID")
-model = "gpt-3.5-turbo-0125"
+model_name = "gpt-3.5-turbo"
+temperature = 0.7
 
-data_analysis_agent = DataAnalysisAgent(assistant_id=assistant_id, model=model)
-
-state_schema = {
-    "content": str,
-    "analysis_results": str,
-}
-
-graph = StateGraph(state_schema=state_schema)
-
-graph.add_node("data_analysis", data_analysis_agent.analyze_data)
-
-graph.add_edge("data_analysis", END)
-graph.set_entry_point("data_analysis")
-
-runnable = graph.compile()
+data_analysis_agent = create_data_analysis_agent(model_name=model_name, temperature=temperature)
 
 initial_state = {
     "content": """date,revenue,expenses,profit
@@ -34,5 +18,5 @@ initial_state = {
 2023-05-01,15000,11000,4000"""
 }
 
-output = runnable.invoke(initial_state)
+output = analyze_data(data_analysis_agent, initial_state)
 print(f"Final output: {output}")

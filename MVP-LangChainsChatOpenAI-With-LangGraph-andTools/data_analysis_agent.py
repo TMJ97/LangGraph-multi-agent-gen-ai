@@ -39,6 +39,6 @@ import pandas as pd
 df = pd.read_csv('data.csv')
 print(df.head())
     """
-    analysis_results = agent.run(f"Please execute the following code using the Python REPL:\n{code_snippet}")
+    analysis_results = agent.run(f"Please execute the following code using the Python REPL tool:\n{code_snippet}")
     state["analysis_results"] = analysis_results
     return state
